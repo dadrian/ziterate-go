@@ -33,3 +33,29 @@ func TestIterator(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkIteratorFull(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		g := zmapGroups[0]
+		it, err := groupIteratorFromGroup(g)
+		if err != nil {
+			b.Fatal(err)
+		}
+		for x := it.Next(); x != nil; x = it.Next() {
+		}
+	}
+}
+
+func BenchmarkIteratorNext(b *testing.B) {
+	g := zmapGroups[len(zmapGroups)-1]
+	it, err := groupIteratorFromGroup(g)
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < b.N; i++ {
+		x := it.Next()
+		if x == nil {
+			b.Fatal("finished before bench")
+		}
+	}
+}
