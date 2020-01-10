@@ -40,7 +40,7 @@ func (it *groupIterator) Next() *big.Int {
 	it.current.Mod(it.current, it.g.p)
 
 	out := it.current
-	if it.current == it.end {
+	if it.current.Cmp(it.end) == 0 {
 		it.current = nil
 	}
 	return out

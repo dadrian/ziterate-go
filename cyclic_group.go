@@ -16,9 +16,24 @@ type group struct {
 
 func (g *group) isCoprime(x *big.Int) bool {
 	var residue big.Int
+	if x.Cmp(zero) == 0 {
+		return false
+	}
 	for _, factor := range g.orderFactors {
-		residue.Mod(x, factor)
-		if residue.Cmp(zero) == 0 {
+		cmp := x.Cmp(factor)
+		if cmp > 0 {
+			// X is bigger than the factor
+			residue.Mod(x, factor)
+			if residue.Cmp(zero) == 0 {
+				return false
+			}
+		} else if cmp < 0 {
+			// Factor is bigger than X
+			residue.Mod(factor, x)
+			if residue.Cmp(zero) == 0 {
+				return false
+			}
+		} else {
 			return false
 		}
 	}
