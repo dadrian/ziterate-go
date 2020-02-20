@@ -33,7 +33,7 @@ func groupIteratorFromGroup(g *group) (*groupIterator, error) {
 	return res, nil
 }
 
-func (it *groupIterator) Next() *big.Int {
+func (it *groupIterator) next() *big.Int {
 	if it.current == nil {
 		return nil
 	}
@@ -43,6 +43,14 @@ func (it *groupIterator) Next() *big.Int {
 	out := it.current
 	if it.current.Cmp(it.end) == 0 {
 		it.current = nil
+	}
+	return out
+}
+
+func (it *groupIterator) Next() interface{} {
+	out := it.next()
+	if out == nil {
+		return nil
 	}
 	return out
 }
@@ -94,7 +102,7 @@ func smallGroupIteratorFromGroup(g *group) (*smallGroupIterator, error) {
 	}, nil
 }
 
-func (it *smallGroupIterator) Next() uint64 {
+func (it *smallGroupIterator) next() uint64 {
 	if it.current == 0 {
 		return 0
 	}
@@ -103,6 +111,14 @@ func (it *smallGroupIterator) Next() uint64 {
 	out := it.current
 	if it.current == it.end {
 		it.current = 0
+	}
+	return out
+}
+
+func (it *smallGroupIterator) Next() interface{} {
+	out := it.next()
+	if out == 0 {
+		return nil
 	}
 	return out
 }
