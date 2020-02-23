@@ -2,10 +2,37 @@ package ziterate
 
 import (
 	"math/big"
+	"strconv"
 	"testing"
 )
 
-func TestIterator(t *testing.T) {
+type elementToStringFunc func(interface{}) string
+
+func testIteratorInterface(t *testing.T, it Iterator, size int, elementToString elementToStringFunc) {
+	count := 0
+	counts := make(map[string]int)
+	for i := it.Next(); i != nil; i = it.Next() {
+		s := elementToString(i)
+		counts[s]++
+		count++
+		if count > size {
+			break
+		}
+	}
+	if count != size {
+		t.Errorf("expected %d iterations, got %d", size, count)
+	}
+	if len(counts) != size {
+		t.Errorf("expected %d unique elements, got %d", size, len(counts))
+	}
+	for s, n := range counts {
+		if n != 1 {
+			t.Errorf("count for %s not 1: got %d", s, n)
+		}
+	}
+}
+
+func TestBigIntIterator(t *testing.T) {
 	g := zmapGroups[0]
 	it, err := groupIteratorFromGroup(g)
 	t.Log(it.generator)
@@ -15,24 +42,10 @@ func TestIterator(t *testing.T) {
 	if err := g.checkIfMultiplicativeGenerator(it.generator); err != nil {
 		t.Fatal(err)
 	}
-	count := 0
-	counts := make([]int64, 257)
-	counts[0] = 1
-	for i := it.next(); i != nil; i = it.next() {
-		counts[i.Int64()] += 1
-		count += 1
-		if count > 256 {
-			break
-		}
+	toString := func(i interface{}) string {
+		return i.(*big.Int).String()
 	}
-	if count != 256 {
-		t.Errorf("expected 256 iterations, got %d", count)
-	}
-	for idx, count := range counts {
-		if count != 1 {
-			t.Errorf("count for %d not 1: got %d", idx, count)
-		}
-	}
+	testIteratorInterface(t, it, 256, toString)
 }
 
 func TestSmallGroupIterator(t *testing.T) {
@@ -45,24 +58,11 @@ func TestSmallGroupIterator(t *testing.T) {
 	if err := g.checkIfMultiplicativeGenerator(big.NewInt(int64(it.generator))); err != nil {
 		t.Fatal(err)
 	}
-	count := 0
-	counts := make([]int64, 257)
-	counts[0] = 1
-	for i := it.next(); i != 0; i = it.next() {
-		counts[i] += 1
-		count += 1
-		if count > 256 {
-			break
-		}
+	toString := func(i interface{}) string {
+		u := i.(uint64)
+		return strconv.FormatUint(u, 10)
 	}
-	if count != 256 {
-		t.Errorf("expected 256 iterations, got %d", count)
-	}
-	for idx, count := range counts {
-		if count != 1 {
-			t.Errorf("count for %d not 1: got %d", idx, count)
-		}
-	}
+	testIteratorInterface(t, it, 256, toString)
 }
 
 func BenchmarkIteratorFullBigInt(b *testing.B) {
