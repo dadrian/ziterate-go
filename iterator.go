@@ -6,24 +6,24 @@ import (
 	"math/big"
 )
 
-type groupIterator struct {
-	g         *group
+type BigIntGroupIterator struct {
+	g         *Group
 	generator *big.Int
 	start     *big.Int
 	end       *big.Int
 	current   *big.Int
 }
 
-func groupIteratorFromGroup(g *group) (*groupIterator, error) {
+func groupIteratorFromGroup(g *Group) (*BigIntGroupIterator, error) {
 	generator, err := g.findMultiplicativeGenerator()
 	if err != nil {
 		return nil, err
 	}
-	start, err := rand.Int(rand.Reader, g.p)
+	start, err := rand.Int(rand.Reader, g.P)
 	if err != nil {
 		return nil, err
 	}
-	res := &groupIterator{
+	res := &BigIntGroupIterator{
 		g:         g,
 		generator: generator,
 		start:     big.NewInt(0).Add(big.NewInt(0), start),
@@ -33,12 +33,12 @@ func groupIteratorFromGroup(g *group) (*groupIterator, error) {
 	return res, nil
 }
 
-func (it *groupIterator) next() *big.Int {
+func (it *BigIntGroupIterator) next() *big.Int {
 	if it.current == nil {
 		return nil
 	}
 	it.current.Mul(it.current, it.generator)
-	it.current.Mod(it.current, it.g.p)
+	it.current.Mod(it.current, it.g.P)
 
 	out := it.current
 	if it.current.Cmp(it.end) == 0 {
@@ -47,7 +47,7 @@ func (it *groupIterator) next() *big.Int {
 	return out
 }
 
-func (it *groupIterator) Next() interface{} {
+func (it *BigIntGroupIterator) Next() interface{} {
 	out := it.next()
 	if out == nil {
 		return nil
@@ -55,8 +55,8 @@ func (it *groupIterator) Next() interface{} {
 	return out
 }
 
-type smallGroupIterator struct {
-	g         *group
+type UintGroupIterator struct {
+	g         *Group
 	prime     uint64
 	generator uint32
 	start     uint64
@@ -69,12 +69,12 @@ const (
 	MaxGeneratorForSmallGroup = (1 << 24)
 )
 
-func smallGroupIteratorFromGroup(g *group) (*smallGroupIterator, error) {
+func smallGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
 	maxP := big.NewInt(PrimeBoundForSmallGroup)
-	if g.p.Cmp(maxP) > 0 || !g.p.IsUint64() {
-		return nil, fmt.Errorf("prime %s is too big", g.p)
+	if g.P.Cmp(maxP) > 0 || !g.P.IsUint64() {
+		return nil, fmt.Errorf("prime %s is too big", g.P)
 	}
-	p := g.p.Uint64()
+	p := g.P.Uint64()
 	var generator uint32
 	maxGenerator := big.NewInt(MaxGeneratorForSmallGroup)
 	for {
@@ -88,11 +88,11 @@ func smallGroupIteratorFromGroup(g *group) (*smallGroupIterator, error) {
 		generator = uint32(gen.Uint64())
 		break
 	}
-	start, err := rand.Int(rand.Reader, g.p)
+	start, err := rand.Int(rand.Reader, g.P)
 	if err != nil {
 		return nil, err
 	}
-	return &smallGroupIterator{
+	return &UintGroupIterator{
 		g:         g,
 		prime:     p,
 		generator: generator,
@@ -102,7 +102,7 @@ func smallGroupIteratorFromGroup(g *group) (*smallGroupIterator, error) {
 	}, nil
 }
 
-func (it *smallGroupIterator) next() uint64 {
+func (it *UintGroupIterator) next() uint64 {
 	if it.current == 0 {
 		return 0
 	}
@@ -115,7 +115,7 @@ func (it *smallGroupIterator) next() uint64 {
 	return out
 }
 
-func (it *smallGroupIterator) Next() interface{} {
+func (it *UintGroupIterator) Next() interface{} {
 	out := it.next()
 	if out == 0 {
 		return nil

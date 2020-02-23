@@ -5,44 +5,44 @@ import (
 	"testing"
 )
 
-var notPrimeGroup = &group{
-	p:            big.NewInt(4294967303),
-	knownRoot:    big.NewInt(3),
-	orderFactors: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
+var notPrimeGroup = &Group{
+	P:            big.NewInt(4294967303),
+	KnownRoot:    big.NewInt(3),
+	OrderFactors: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
 }
-var notKnownRootGroup = &group{
-	p:            big.NewInt(4294967311),
-	knownRoot:    big.NewInt(30),
-	orderFactors: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
+var notKnownRootGroup = &Group{
+	P:            big.NewInt(4294967311),
+	KnownRoot:    big.NewInt(30),
+	OrderFactors: []*big.Int{big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
 }
-var notFactorsGroup = &group{
-	p:            big.NewInt(4294967311),
-	knownRoot:    big.NewInt(3),
-	orderFactors: []*big.Int{big.NewInt(7), big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
+var notFactorsGroup = &Group{
+	P:            big.NewInt(4294967311),
+	KnownRoot:    big.NewInt(3),
+	OrderFactors: []*big.Int{big.NewInt(7), big.NewInt(2), big.NewInt(3), big.NewInt(5), big.NewInt(131), big.NewInt(364289)},
 }
 
 func TestIsValid(t *testing.T) {
 	validGroups := zmapGroups
 	for idx, g := range validGroups {
-		if err := g.isValid(); err != nil {
+		if err := g.IsValid(); err != nil {
 			t.Errorf("expected valid group at index %d, got error %s", idx, err)
 		}
 	}
-	invalidGroups := []*group{notPrimeGroup, notKnownRootGroup, notFactorsGroup}
+	invalidGroups := []*Group{notPrimeGroup, notKnownRootGroup, notFactorsGroup}
 	for idx, g := range invalidGroups {
-		if err := g.isValid(); err == nil {
+		if err := g.IsValid(); err == nil {
 			t.Errorf("expected error, got valid for group at index %d", idx)
 		}
 	}
 }
 
 func TestIsCoprime(t *testing.T) {
-	g := group{
-		p:            big.NewInt(23),
-		knownRoot:    big.NewInt(5),
-		orderFactors: []*big.Int{big.NewInt(2), big.NewInt(11)},
+	g := Group{
+		P:            big.NewInt(23),
+		KnownRoot:    big.NewInt(5),
+		OrderFactors: []*big.Int{big.NewInt(2), big.NewInt(11)},
 	}
-	if err := g.isValid(); err != nil {
+	if err := g.IsValid(); err != nil {
 		t.Fatalf("invalid group: %s", err)
 	}
 	coprimes := []int64{
@@ -71,7 +71,7 @@ func TestFindAdditiveGenerator(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 	if !g.isCoprime(additiveGenerator) {
-		t.Errorf("%s should be coprime with p (%s)", additiveGenerator, g.p)
+		t.Errorf("%s should be coprime with p (%s)", additiveGenerator, g.P)
 	}
 }
 
