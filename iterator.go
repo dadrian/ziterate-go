@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+// BigIntGroupIterator uses a big.Int to Iterate over cyclic groups of arbitrary
+// size.
 type BigIntGroupIterator struct {
 	g         *Group
 	generator *big.Int
@@ -14,7 +16,9 @@ type BigIntGroupIterator struct {
 	current   *big.Int
 }
 
-func groupIteratorFromGroup(g *Group) (*BigIntGroupIterator, error) {
+// BigIntGroupIteratorFromGroup constructs a BigIntGroupIterator given any valid
+// group.
+func BigIntGroupIteratorFromGroup(g *Group) (*BigIntGroupIterator, error) {
 	generator, err := g.findMultiplicativeGenerator()
 	if err != nil {
 		return nil, err
@@ -33,7 +37,10 @@ func groupIteratorFromGroup(g *Group) (*BigIntGroupIterator, error) {
 	return res, nil
 }
 
-func (it *BigIntGroupIterator) next() *big.Int {
+// NextBigInt is a typed version of Next. If the BigIntGroupIterator is being
+// used directly, and not through the Iterator interface, this function should
+// be used to iterate.
+func (it *BigIntGroupIterator) NextBigInt() *big.Int {
 	if it.current == nil {
 		return nil
 	}
@@ -47,14 +54,17 @@ func (it *BigIntGroupIterator) next() *big.Int {
 	return out
 }
 
+// Next implements the Iterator interface.
 func (it *BigIntGroupIterator) Next() interface{} {
-	out := it.next()
+	out := it.NextBigInt()
 	if out == nil {
 		return nil
 	}
 	return out
 }
 
+// UintGroupIterator uses a uint64 to iterate through sufficiently-small cyclic
+// groups.
 type UintGroupIterator struct {
 	g         *Group
 	prime     uint64
@@ -65,11 +75,19 @@ type UintGroupIterator struct {
 }
 
 const (
-	PrimeBoundForSmallGroup   = (1 << 40)
+	// PrimeBoundForSmallGroup is the largest P allowed to be used with
+	// UintGroupIterator
+	PrimeBoundForSmallGroup = (1 << 40)
+
+	// MaxGeneratorForSmallGroup is the largest generator used internally by the
+	// UintGroupIterator.
 	MaxGeneratorForSmallGroup = (1 << 24)
 )
 
-func smallGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
+// UintGroupIteratorFromGroup constructs a UintGroupIterator from a Group where
+// P is below PrimeBoundForSmallGroup. It is faster when used directly on
+// equivalent sized groups.
+func UintGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
 	maxP := big.NewInt(PrimeBoundForSmallGroup)
 	if g.P.Cmp(maxP) > 0 || !g.P.IsUint64() {
 		return nil, fmt.Errorf("prime %s is too big", g.P)
@@ -102,7 +120,9 @@ func smallGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
 	}, nil
 }
 
-func (it *UintGroupIterator) next() uint64 {
+// NextUint is the typed version of next. It is considerably faster than using
+// Next.
+func (it *UintGroupIterator) NextUint() uint64 {
 	if it.current == 0 {
 		return 0
 	}
@@ -115,8 +135,9 @@ func (it *UintGroupIterator) next() uint64 {
 	return out
 }
 
+// Next implements the Iterator interface.
 func (it *UintGroupIterator) Next() interface{} {
-	out := it.next()
+	out := it.NextUint()
 	if out == 0 {
 		return nil
 	}

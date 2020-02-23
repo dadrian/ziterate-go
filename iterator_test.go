@@ -34,7 +34,7 @@ func testIteratorInterface(t *testing.T, it Iterator, size int, elementToString 
 
 func TestBigIntIterator(t *testing.T) {
 	g := zmapGroups[0]
-	it, err := groupIteratorFromGroup(g)
+	it, err := BigIntGroupIteratorFromGroup(g)
 	t.Log(it.generator)
 	if err != nil {
 		t.Fatal(err)
@@ -50,7 +50,7 @@ func TestBigIntIterator(t *testing.T) {
 
 func TestSmallGroupIterator(t *testing.T) {
 	g := zmapGroups[0]
-	it, err := smallGroupIteratorFromGroup(g)
+	it, err := UintGroupIteratorFromGroup(g)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,11 +68,11 @@ func TestSmallGroupIterator(t *testing.T) {
 func BenchmarkIteratorFullBigInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := zmapGroups[0]
-		it, err := groupIteratorFromGroup(g)
+		it, err := BigIntGroupIteratorFromGroup(g)
 		if err != nil {
 			b.Fatal(err)
 		}
-		for x := it.next(); x != nil; x = it.next() {
+		for x := it.NextBigInt(); x != nil; x = it.NextBigInt() {
 		}
 	}
 }
@@ -80,7 +80,7 @@ func BenchmarkIteratorFullBigInt(b *testing.B) {
 func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := zmapGroups[0]
-		bg, err := groupIteratorFromGroup(g)
+		bg, err := BigIntGroupIteratorFromGroup(g)
 		var it Iterator
 		it = bg
 		if err != nil {
@@ -94,11 +94,11 @@ func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 func BenchmarkIteratorFullUint64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := zmapGroups[0]
-		it, err := smallGroupIteratorFromGroup(g)
+		it, err := UintGroupIteratorFromGroup(g)
 		if err != nil {
 			b.Fatal(err)
 		}
-		for x := it.next(); x != 0; x = it.next() {
+		for x := it.NextUint(); x != 0; x = it.NextUint() {
 		}
 	}
 }
@@ -106,7 +106,7 @@ func BenchmarkIteratorFullUint64(b *testing.B) {
 func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := zmapGroups[0]
-		sg, err := smallGroupIteratorFromGroup(g)
+		sg, err := UintGroupIteratorFromGroup(g)
 		var it Iterator
 		it = sg
 		if err != nil {
@@ -119,12 +119,12 @@ func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 
 func BenchmarkIteratorNextBigInt(b *testing.B) {
 	g := zmapGroups[len(zmapGroups)-1]
-	it, err := groupIteratorFromGroup(g)
+	it, err := BigIntGroupIteratorFromGroup(g)
 	if err != nil {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		x := it.next()
+		x := it.NextBigInt()
 		if x == nil {
 			b.Fatal("finished before bench")
 		}
@@ -133,7 +133,7 @@ func BenchmarkIteratorNextBigInt(b *testing.B) {
 
 func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
 	g := zmapGroups[len(zmapGroups)-1]
-	bigIt, err := groupIteratorFromGroup(g)
+	bigIt, err := BigIntGroupIteratorFromGroup(g)
 	var it Iterator
 	it = bigIt
 	if err != nil {
@@ -149,12 +149,12 @@ func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
 
 func BenchmarkIteratorNextUint64(b *testing.B) {
 	g := zmapGroups[len(zmapGroups)-1]
-	it, err := smallGroupIteratorFromGroup(g)
+	it, err := UintGroupIteratorFromGroup(g)
 	if err != nil {
 		b.Fatal(err)
 	}
 	for i := 0; i < b.N; i++ {
-		x := it.next()
+		x := it.NextUint()
 		if x == 0 {
 			b.Fatal("finished before bench")
 		}
@@ -163,7 +163,7 @@ func BenchmarkIteratorNextUint64(b *testing.B) {
 
 func BenchmarkIteratorNextUint64Interface(b *testing.B) {
 	g := zmapGroups[len(zmapGroups)-1]
-	sg, err := smallGroupIteratorFromGroup(g)
+	sg, err := UintGroupIteratorFromGroup(g)
 	var it Iterator
 	it = sg
 	if err != nil {
