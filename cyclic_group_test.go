@@ -22,7 +22,7 @@ var notFactorsGroup = &Group{
 }
 
 func TestIsValid(t *testing.T) {
-	validGroups := zmapGroups
+	validGroups := ZMapGroups
 	for idx, g := range validGroups {
 		if err := g.IsValid(); err != nil {
 			t.Errorf("expected valid group at index %d, got error %s", idx, err)
@@ -36,7 +36,7 @@ func TestIsValid(t *testing.T) {
 	}
 }
 
-func TestIsCoprime(t *testing.T) {
+func TestCheckIfMultiplicativeGenerator(t *testing.T) {
 	g := Group{
 		P:            big.NewInt(23),
 		KnownRoot:    big.NewInt(5),
@@ -45,38 +45,26 @@ func TestIsCoprime(t *testing.T) {
 	if err := g.IsValid(); err != nil {
 		t.Fatalf("invalid group: %s", err)
 	}
-	coprimes := []int64{
-		3, 5, 7, 9, 13, 15, 17, 19, 21,
+	generators := []int64{
+		5, 7, 10, 11, 14, 15, 17, 19, 20, 21,
 	}
-	shared := []int64{
-		2, 4, 6, 8, 10, 11, 12, 14, 16, 18, 20,
+	notGenerators := []int64{
+		1, 2, 3, 4, 6, 8, 9, 12, 13, 16, 18, 22,
 	}
-	for _, c := range coprimes {
-		if !g.isCoprime(big.NewInt(c)) {
-			t.Errorf("%d should be coprime with 22", c)
+	for _, generator := range generators {
+		if err := g.checkIfMultiplicativeGenerator(big.NewInt(generator)); err != nil {
+			t.Errorf("%d should be a multiplicative generator: %s", generator, err)
 		}
 	}
-	for _, s := range shared {
-		if g.isCoprime(big.NewInt(s)) {
-			t.Errorf("%d is not coprime with 22", s)
+	for _, notGenerator := range notGenerators {
+		if err := g.checkIfMultiplicativeGenerator(big.NewInt(notGenerator)); err == nil {
+			t.Errorf("%d should not be a multiplicative generator", notGenerator)
 		}
-	}
-
-}
-
-func TestFindAdditiveGenerator(t *testing.T) {
-	g := zmapGroups[0]
-	additiveGenerator, err := g.findAdditiveGenerator()
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
-	if !g.isCoprime(additiveGenerator) {
-		t.Errorf("%s should be coprime with p (%s)", additiveGenerator, g.P)
 	}
 }
 
 func TestFindMultiplicativeGenerator(t *testing.T) {
-	g := zmapGroups[0]
+	g := ZMapGroups[0]
 	mg, err := g.findMultiplicativeGenerator()
 	if err != nil {
 		t.Fatal(err)

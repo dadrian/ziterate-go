@@ -8,6 +8,16 @@ import (
 
 type elementToStringFunc func(interface{}) string
 
+func largestUintGroup() *Group {
+	limit := big.NewInt(PrimeBoundForSmallGroup)
+	for i := len(ZMapGroups) - 1; i >= 0; i-- {
+		if ZMapGroups[i].P.Cmp(limit) <= 0 {
+			return ZMapGroups[i]
+		}
+	}
+	return nil
+}
+
 func testIteratorInterface(t *testing.T, it Iterator, size int, elementToString elementToStringFunc) {
 	count := 0
 	counts := make(map[string]int)
@@ -33,7 +43,7 @@ func testIteratorInterface(t *testing.T, it Iterator, size int, elementToString 
 }
 
 func TestBigIntIterator(t *testing.T) {
-	g := zmapGroups[0]
+	g := ZMapGroups[0]
 	it, err := BigIntGroupIteratorFromGroup(g)
 	t.Log(it.generator)
 	if err != nil {
@@ -49,7 +59,7 @@ func TestBigIntIterator(t *testing.T) {
 }
 
 func TestSmallGroupIterator(t *testing.T) {
-	g := zmapGroups[0]
+	g := ZMapGroups[0]
 	it, err := UintGroupIteratorFromGroup(g)
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +77,7 @@ func TestSmallGroupIterator(t *testing.T) {
 
 func BenchmarkIteratorFullBigInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		g := zmapGroups[0]
+		g := ZMapGroups[0]
 		it, err := BigIntGroupIteratorFromGroup(g)
 		if err != nil {
 			b.Fatal(err)
@@ -79,7 +89,7 @@ func BenchmarkIteratorFullBigInt(b *testing.B) {
 
 func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		g := zmapGroups[0]
+		g := ZMapGroups[0]
 		bg, err := BigIntGroupIteratorFromGroup(g)
 		var it Iterator
 		it = bg
@@ -93,7 +103,7 @@ func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 
 func BenchmarkIteratorFullUint64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		g := zmapGroups[0]
+		g := ZMapGroups[0]
 		it, err := UintGroupIteratorFromGroup(g)
 		if err != nil {
 			b.Fatal(err)
@@ -105,7 +115,7 @@ func BenchmarkIteratorFullUint64(b *testing.B) {
 
 func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		g := zmapGroups[0]
+		g := ZMapGroups[0]
 		sg, err := UintGroupIteratorFromGroup(g)
 		var it Iterator
 		it = sg
@@ -118,7 +128,7 @@ func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 }
 
 func BenchmarkIteratorNextBigInt(b *testing.B) {
-	g := zmapGroups[len(zmapGroups)-1]
+	g := ZMapGroups[len(ZMapGroups)-1]
 	it, err := BigIntGroupIteratorFromGroup(g)
 	if err != nil {
 		b.Fatal(err)
@@ -132,7 +142,7 @@ func BenchmarkIteratorNextBigInt(b *testing.B) {
 }
 
 func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
-	g := zmapGroups[len(zmapGroups)-1]
+	g := ZMapGroups[len(ZMapGroups)-1]
 	bigIt, err := BigIntGroupIteratorFromGroup(g)
 	var it Iterator
 	it = bigIt
@@ -148,7 +158,7 @@ func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
 }
 
 func BenchmarkIteratorNextUint64(b *testing.B) {
-	g := zmapGroups[len(zmapGroups)-1]
+	g := largestUintGroup()
 	it, err := UintGroupIteratorFromGroup(g)
 	if err != nil {
 		b.Fatal(err)
@@ -162,7 +172,7 @@ func BenchmarkIteratorNextUint64(b *testing.B) {
 }
 
 func BenchmarkIteratorNextUint64Interface(b *testing.B) {
-	g := zmapGroups[len(zmapGroups)-1]
+	g := largestUintGroup()
 	sg, err := UintGroupIteratorFromGroup(g)
 	var it Iterator
 	it = sg

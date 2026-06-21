@@ -81,7 +81,7 @@ const (
 
 	// MaxGeneratorForSmallGroup is the largest generator used internally by the
 	// UintGroupIterator.
-	MaxGeneratorForSmallGroup = (1 << 24)
+	MaxGeneratorForSmallGroup = (1 << 22)
 )
 
 // UintGroupIteratorFromGroup constructs a UintGroupIterator from a Group where

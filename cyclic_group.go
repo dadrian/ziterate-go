@@ -7,6 +7,7 @@ import (
 )
 
 var zero = big.NewInt(0)
+var maxGenerator = big.NewInt(MaxGeneratorForSmallGroup)
 
 // Group represents a cyclic group module P. It can be used for additive or multiplicative groups.
 type Group struct {
@@ -20,79 +21,49 @@ type Group struct {
 	OrderFactors []*big.Int
 }
 
-func (g *Group) isCoprime(x *big.Int) bool {
-	var residue big.Int
-	if x.Cmp(zero) == 0 {
-		return false
+func (g *Group) findMultiplicativeGenerator() (*big.Int, error) {
+	limit := big.NewInt(0).Set(g.P)
+	if limit.Cmp(maxGenerator) > 0 {
+		limit.Set(maxGenerator)
 	}
-	for _, factor := range g.OrderFactors {
-		cmp := x.Cmp(factor)
-		if cmp > 0 {
-			// X is bigger than the factor
-			residue.Mod(x, factor)
-			if residue.Cmp(zero) == 0 {
-				return false
-			}
-		} else if cmp < 0 {
-			// Factor is bigger than X
-			residue.Mod(factor, x)
-			if residue.Cmp(zero) == 0 {
-				return false
-			}
-		} else {
-			return false
-		}
-	}
-	return true
-}
-
-// Perform the isomorphism from (Z/pZ)+ to (Z/pZ)*
-// Given known primitive root of (Z/pZ)* n, with x in (Z/pZ)+, do:
-//
-//     f(x) = n^x mod p
-//
-// The isomorphism in the reverse direction is discrete log, and is therefore
-// hard.
-func (g *Group) additiveToMultiplicativeIsomorphism(x *big.Int) *big.Int {
-	out := big.NewInt(0)
-	out.Exp(g.KnownRoot, x, g.P)
-	return out
-}
-
-func (g *Group) findAdditiveGenerator() (*big.Int, error) {
 	candidate, err := rand.Int(rand.Reader, g.P)
 	if err != nil {
 		return nil, err
 	}
-	for !g.isCoprime(candidate) {
+	candidate.Add(candidate, big.NewInt(1))
+	candidate.Mod(candidate, g.P)
+	candidate.Mod(candidate, limit)
+
+	for attempts := big.NewInt(0); attempts.Cmp(limit) < 0; attempts.Add(attempts, big.NewInt(1)) {
+		if candidate.Cmp(zero) != 0 && g.checkIfMultiplicativeGenerator(candidate) == nil {
+			return big.NewInt(0).Set(candidate), nil
+		}
 		candidate.Add(candidate, big.NewInt(1))
 		candidate.Mod(candidate, g.P)
+		candidate.Mod(candidate, limit)
 	}
-	return candidate, nil
-}
-
-func (g *Group) findMultiplicativeGenerator() (*big.Int, error) {
-	additiveGenerator, err := g.findAdditiveGenerator()
-	if err != nil {
-		return nil, err
-	}
-	multiplicativeGenerator := g.additiveToMultiplicativeIsomorphism(additiveGenerator)
-	return multiplicativeGenerator, nil
+	return nil, fmt.Errorf("could not find multiplicative generator below %s", limit)
 }
 
 // Check that the primitive root is a generator of the multiplicative
 // group. It is a generator if it is not of the order of any of the
 // subgroups.
 func (g *Group) checkIfMultiplicativeGenerator(m *big.Int) error {
+	if m == nil {
+		return fmt.Errorf("not a generator: <nil> is outside [1, %s)", g.P)
+	}
+	if m.Cmp(zero) <= 0 || m.Cmp(g.P) >= 0 {
+		return fmt.Errorf("not a generator: %s is outside [1, %s)", m, g.P)
+	}
 	order := big.NewInt(0)
 	order.Sub(g.P, big.NewInt(1))
 	for _, factor := range g.OrderFactors {
 		possibleSubgroupOrder := big.NewInt(0)
 		possibleSubgroupOrder.Div(order, factor)
 		subgroupCheck := big.NewInt(0)
-		subgroupCheck.Exp(g.KnownRoot, possibleSubgroupOrder, g.P)
+		subgroupCheck.Exp(m, possibleSubgroupOrder, g.P)
 		if subgroupCheck.Cmp(big.NewInt(1)) == 0 {
-			return fmt.Errorf("not a generator: (%s does not generates %s, it has order %s)", g.KnownRoot, g.P, possibleSubgroupOrder)
+			return fmt.Errorf("not a generator: (%s does not generate %s, it has subgroup order %s)", m, g.P, possibleSubgroupOrder)
 		}
 	}
 	return nil
