@@ -1,9 +1,7 @@
 module github.com/zmap/ziterate
 
-go 1.13
+go 1.26
 
-require (
-	github.com/google/go-cmp v0.4.0
-	github.com/pkg/errors v0.9.1 // indirect
-	gotest.tools v2.2.0+incompatible
-)
+require github.com/zmap/go-iptree v0.0.0-20260427234317-6edabe974d8a
+
+require github.com/asergeyev/nradix v0.0.0-20220715161825-e451993e425c // indirect
