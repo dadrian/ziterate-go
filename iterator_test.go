@@ -1,6 +1,7 @@
 package ziterate
 
 import (
+	"crypto/rand"
 	"math/big"
 	"math/bits"
 	"strconv"
@@ -45,7 +46,7 @@ func testIteratorInterface(t *testing.T, it Iterator, size int, elementToString 
 
 func TestBigIntIterator(t *testing.T) {
 	g := ZMapGroups[0]
-	it, err := BigIntGroupIteratorFromGroup(g)
+	it, err := BigIntGroupIteratorFromGroup(g, rand.Reader)
 	t.Log(it.generator)
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +62,7 @@ func TestBigIntIterator(t *testing.T) {
 
 func TestSmallGroupIterator(t *testing.T) {
 	g := ZMapGroups[0]
-	it, err := UintGroupIteratorFromGroup(g)
+	it, err := UintGroupIteratorFromGroup(g, rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +82,7 @@ func TestUintGroupIteratorZMapGroupBounds(t *testing.T) {
 	if hi, _ := bits.Mul64(accepted.P.Uint64(), MaxGeneratorForSmallGroup); hi != 0 {
 		t.Fatalf("expected %s * %d not to overflow uint64", accepted.P, MaxGeneratorForSmallGroup)
 	}
-	if _, err := UintGroupIteratorFromGroup(accepted); err != nil {
+	if _, err := UintGroupIteratorFromGroup(accepted, rand.Reader); err != nil {
 		t.Fatalf("expected %s to be accepted: %s", accepted.P, err)
 	}
 
@@ -95,7 +96,7 @@ func TestUintGroupIteratorZMapGroupBounds(t *testing.T) {
 	if hi, _ := bits.Mul64(rejected.P.Uint64(), MaxGeneratorForSmallGroup); hi == 0 {
 		t.Fatalf("expected %s * %d to overflow uint64", rejected.P, MaxGeneratorForSmallGroup)
 	}
-	if _, err := UintGroupIteratorFromGroup(rejected); err == nil {
+	if _, err := UintGroupIteratorFromGroup(rejected, rand.Reader); err == nil {
 		t.Fatalf("expected %s to be rejected", rejected.P)
 	}
 }
@@ -103,7 +104,7 @@ func TestUintGroupIteratorZMapGroupBounds(t *testing.T) {
 func BenchmarkIteratorFullBigInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := ZMapGroups[0]
-		it, err := BigIntGroupIteratorFromGroup(g)
+		it, err := BigIntGroupIteratorFromGroup(g, rand.Reader)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -115,7 +116,7 @@ func BenchmarkIteratorFullBigInt(b *testing.B) {
 func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := ZMapGroups[0]
-		bg, err := BigIntGroupIteratorFromGroup(g)
+		bg, err := BigIntGroupIteratorFromGroup(g, rand.Reader)
 		var it Iterator
 		it = bg
 		if err != nil {
@@ -129,7 +130,7 @@ func BenchmarkIteratorFullBigIntInterface(b *testing.B) {
 func BenchmarkIteratorFullUint64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := ZMapGroups[0]
-		it, err := UintGroupIteratorFromGroup(g)
+		it, err := UintGroupIteratorFromGroup(g, rand.Reader)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -141,7 +142,7 @@ func BenchmarkIteratorFullUint64(b *testing.B) {
 func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		g := ZMapGroups[0]
-		sg, err := UintGroupIteratorFromGroup(g)
+		sg, err := UintGroupIteratorFromGroup(g, rand.Reader)
 		var it Iterator
 		it = sg
 		if err != nil {
@@ -154,7 +155,7 @@ func BenchmarkIteratorFullUint64Interface(b *testing.B) {
 
 func BenchmarkIteratorNextBigInt(b *testing.B) {
 	g := ZMapGroups[len(ZMapGroups)-1]
-	it, err := BigIntGroupIteratorFromGroup(g)
+	it, err := BigIntGroupIteratorFromGroup(g, rand.Reader)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -168,7 +169,7 @@ func BenchmarkIteratorNextBigInt(b *testing.B) {
 
 func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
 	g := ZMapGroups[len(ZMapGroups)-1]
-	bigIt, err := BigIntGroupIteratorFromGroup(g)
+	bigIt, err := BigIntGroupIteratorFromGroup(g, rand.Reader)
 	var it Iterator
 	it = bigIt
 	if err != nil {
@@ -184,7 +185,7 @@ func BenchmarkIteratorNextBigIntInterface(b *testing.B) {
 
 func BenchmarkIteratorNextUint64(b *testing.B) {
 	g := largestUintGroup()
-	it, err := UintGroupIteratorFromGroup(g)
+	it, err := UintGroupIteratorFromGroup(g, rand.Reader)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -198,7 +199,7 @@ func BenchmarkIteratorNextUint64(b *testing.B) {
 
 func BenchmarkIteratorNextUint64Interface(b *testing.B) {
 	g := largestUintGroup()
-	sg, err := UintGroupIteratorFromGroup(g)
+	sg, err := UintGroupIteratorFromGroup(g, rand.Reader)
 	var it Iterator
 	it = sg
 	if err != nil {

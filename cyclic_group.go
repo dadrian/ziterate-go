@@ -3,6 +3,7 @@ package ziterate
 import (
 	"crypto/rand"
 	"fmt"
+	"io"
 	"math/big"
 )
 
@@ -21,12 +22,12 @@ type Group struct {
 	OrderFactors []*big.Int
 }
 
-func (g *Group) findMultiplicativeGenerator() (*big.Int, error) {
+func (g *Group) findMultiplicativeGenerator(random io.Reader) (*big.Int, error) {
 	limit := big.NewInt(0).Set(g.P)
 	if limit.Cmp(maxGenerator) > 0 {
 		limit.Set(maxGenerator)
 	}
-	candidate, err := rand.Int(rand.Reader, g.P)
+	candidate, err := rand.Int(random, g.P)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package ziterate
 import (
 	"crypto/rand"
 	"fmt"
+	"io"
 	"math/big"
 )
 
@@ -18,12 +19,12 @@ type BigIntGroupIterator struct {
 
 // BigIntGroupIteratorFromGroup constructs a BigIntGroupIterator given any valid
 // group.
-func BigIntGroupIteratorFromGroup(g *Group) (*BigIntGroupIterator, error) {
-	generator, err := g.findMultiplicativeGenerator()
+func BigIntGroupIteratorFromGroup(g *Group, random io.Reader) (*BigIntGroupIterator, error) {
+	generator, err := g.findMultiplicativeGenerator(random)
 	if err != nil {
 		return nil, err
 	}
-	start, err := rand.Int(rand.Reader, g.P)
+	start, err := rand.Int(random, g.P)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ const (
 // UintGroupIteratorFromGroup constructs a UintGroupIterator from a Group where
 // P is below PrimeBoundForSmallGroup. It is faster when used directly on
 // equivalent sized groups.
-func UintGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
+func UintGroupIteratorFromGroup(g *Group, random io.Reader) (*UintGroupIterator, error) {
 	maxP := big.NewInt(PrimeBoundForSmallGroup)
 	if g.P.Cmp(maxP) > 0 || !g.P.IsUint64() {
 		return nil, fmt.Errorf("prime %s is too big", g.P)
@@ -96,7 +97,7 @@ func UintGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
 	var generator uint32
 	maxGenerator := big.NewInt(MaxGeneratorForSmallGroup)
 	for {
-		gen, err := g.findMultiplicativeGenerator()
+		gen, err := g.findMultiplicativeGenerator(random)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +107,7 @@ func UintGroupIteratorFromGroup(g *Group) (*UintGroupIterator, error) {
 		generator = uint32(gen.Uint64())
 		break
 	}
-	start, err := rand.Int(rand.Reader, g.P)
+	start, err := rand.Int(random, g.P)
 	if err != nil {
 		return nil, err
 	}

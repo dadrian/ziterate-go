@@ -1,6 +1,7 @@
 package ziterate
 
 import (
+	"crypto/rand"
 	"math/big"
 	"testing"
 )
@@ -65,7 +66,7 @@ func TestCheckIfMultiplicativeGenerator(t *testing.T) {
 
 func TestFindMultiplicativeGenerator(t *testing.T) {
 	g := ZMapGroups[0]
-	mg, err := g.findMultiplicativeGenerator()
+	mg, err := g.findMultiplicativeGenerator(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
