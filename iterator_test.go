@@ -2,6 +2,7 @@ package ziterate
 
 import (
 	"math/big"
+	"math/bits"
 	"strconv"
 	"testing"
 )
@@ -73,6 +74,30 @@ func TestSmallGroupIterator(t *testing.T) {
 		return strconv.FormatUint(u, 10)
 	}
 	testIteratorInterface(t, it, 256, toString)
+}
+
+func TestUintGroupIteratorZMapGroupBounds(t *testing.T) {
+	accepted := largestUintGroup()
+	if hi, _ := bits.Mul64(accepted.P.Uint64(), MaxGeneratorForSmallGroup); hi != 0 {
+		t.Fatalf("expected %s * %d not to overflow uint64", accepted.P, MaxGeneratorForSmallGroup)
+	}
+	if _, err := UintGroupIteratorFromGroup(accepted); err != nil {
+		t.Fatalf("expected %s to be accepted: %s", accepted.P, err)
+	}
+
+	rejected := ZMapGroups[0]
+	for _, g := range ZMapGroups {
+		if g.P.Cmp(accepted.P) > 0 {
+			rejected = g
+			break
+		}
+	}
+	if hi, _ := bits.Mul64(rejected.P.Uint64(), MaxGeneratorForSmallGroup); hi == 0 {
+		t.Fatalf("expected %s * %d to overflow uint64", rejected.P, MaxGeneratorForSmallGroup)
+	}
+	if _, err := UintGroupIteratorFromGroup(rejected); err == nil {
+		t.Fatalf("expected %s to be rejected", rejected.P)
+	}
 }
 
 func BenchmarkIteratorFullBigInt(b *testing.B) {

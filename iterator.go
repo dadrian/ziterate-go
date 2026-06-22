@@ -75,13 +75,13 @@ type UintGroupIterator struct {
 }
 
 const (
-	// PrimeBoundForSmallGroup is the largest P allowed to be used with
-	// UintGroupIterator
-	PrimeBoundForSmallGroup = (1 << 40)
-
 	// MaxGeneratorForSmallGroup is the largest generator used internally by the
 	// UintGroupIterator.
 	MaxGeneratorForSmallGroup = (1 << 22)
+
+	// PrimeBoundForSmallGroup is the largest P allowed to be used with
+	// UintGroupIterator without overflowing uint64 multiplication.
+	PrimeBoundForSmallGroup = (1<<64 - 1) / MaxGeneratorForSmallGroup
 )
 
 // UintGroupIteratorFromGroup constructs a UintGroupIterator from a Group where
