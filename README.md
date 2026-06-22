@@ -8,5 +8,3 @@ allowlisting functionality as in ZMap.
 
 This is not a 1:1 replacement, the exact logic for allowlisting and blocklisting
 in ZMap would need to be reimplemented, as well as the seed generation.
-
-If I ever get this to feature complete, I'll move it to the ZMap organization.
