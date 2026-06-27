@@ -24,7 +24,7 @@ func BigIntGroupIteratorFromGroup(g *Group, random io.Reader) (*BigIntGroupItera
 	if err != nil {
 		return nil, err
 	}
-	start, err := rand.Int(random, g.P)
+	start, err := randomNonZeroBigInt(random, g.P)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func UintGroupIteratorFromGroup(g *Group, random io.Reader) (*UintGroupIterator,
 		generator = uint32(gen.Uint64())
 		break
 	}
-	start, err := rand.Int(random, g.P)
+	start, err := randomNonZeroBigInt(random, g.P)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +119,16 @@ func UintGroupIteratorFromGroup(g *Group, random io.Reader) (*UintGroupIterator,
 		end:       start.Uint64(),
 		current:   start.Uint64(),
 	}, nil
+}
+
+func randomNonZeroBigInt(random io.Reader, max *big.Int) (*big.Int, error) {
+	limit := big.NewInt(0).Sub(max, big.NewInt(1))
+	out, err := rand.Int(random, limit)
+	if err != nil {
+		return nil, err
+	}
+	out.Add(out, big.NewInt(1))
+	return out, nil
 }
 
 // NextUint is the typed version of next. It is considerably faster than using

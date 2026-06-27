@@ -1,13 +1,60 @@
 ZIterate, in Go
 ===============
 
-This core ZMap iteration logic, reimplemented in Go. It is not as fast, but the
-UintGroupIterator using the NextUint() function is pretty fast. You can pair
-this with [zmap/go-iptree](https://github.com/zmap/go-iptree) to get the same
-allowlisting functionality as in ZMap.
+This is core ZMap-style iteration logic, reimplemented in Go. It is not as fast,
+but the UintGroupIterator using the NextUint() function is pretty fast.
 
-This is not a 1:1 replacement, the exact logic for allowlisting and blocklisting
-in ZMap would need to be reimplemented, as well as the seed generation.
+This is not a 1:1 replacement. It includes sorted-range allowlist and blocklist
+support for the ziterate CLI, but does not try to exactly match ZMap's address
+ordering or blocklist semantics.
+
+Usage
+----
+
+Install or run the CLI with Go:
+
+```sh
+go install github.com/zmap/ziterate/cmd/ziterate@latest
+ziterate --help
+```
+
+Iterate over the public IPv4 space:
+
+```sh
+ziterate
+```
+
+Iterate over one or more CIDR allowlist entries:
+
+```sh
+ziterate 10.0.0.0/24 192.0.2.10
+```
+
+Emit IP and port pairs:
+
+```sh
+ziterate --target-ports 80,443,8000-8002 10.0.0.0/24
+```
+
+Use allowlist and blocklist files:
+
+```sh
+ziterate --allowlist-file allow.txt --blocklist-file block.txt
+```
+
+Generate repeatable output with a seed and cap the number of targets:
+
+```sh
+ziterate --seed 12345 --max-targets 1000 10.0.0.0/16
+```
+
+Split output across shards. Sharding requires a seed so each shard uses the same
+base ordering:
+
+```sh
+ziterate --seed 12345 --shards 4 --shard 0 10.0.0.0/16
+ziterate --seed 12345 --shards 4 --shard 1 10.0.0.0/16
+```
 
 Examples
 --------
