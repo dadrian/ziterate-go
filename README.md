@@ -4,9 +4,11 @@ ZIterate, in Go
 This is core ZMap-style iteration logic, reimplemented in Go. It is not as fast,
 but the UintGroupIterator using the NextUint() function is pretty fast.
 
-This is not a 1:1 replacement. It includes sorted-range allowlist and blocklist
-support for the ziterate CLI, but does not try to exactly match ZMap's address
-ordering or blocklist semantics.
+This is not a 1:1 replacement. It includes allowlist, blocklist, and sharding
+support similar to ziterate CLI, but does not try to exactly match ZMap's
+address ordering or blocklist semantics. Using the same seed and flags between
+the ziterate in the ZMap repository, and the Go implementation, will **not**
+result in the same outputs.
 
 Usage
 ----
